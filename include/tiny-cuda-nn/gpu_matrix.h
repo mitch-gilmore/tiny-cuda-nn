@@ -113,6 +113,8 @@ public:
 		m_malloc_allocation = std::make_shared<GPUMemory<uint8_t>>(m * n * sizeof(T));
 		m_data = (T*)m_malloc_allocation->data();
 		set_stride_contiguous();
+
+		if (!m_data) throw std::runtime_error("Data pointer is null. Likely insufficient memory.");
 	}
 
 	// Owning its memory as an allocation from a stream's memory arena
@@ -121,6 +123,8 @@ public:
 		m_arena_allocation = std::make_shared<GPUMemoryArena::Allocation>(allocate_workspace(stream, m * n * sizeof(T)));
 		m_data = (T*)m_arena_allocation->data();
 		set_stride_contiguous();
+
+		if (!m_data) throw std::runtime_error("Data pointer is null. Likely insufficient memory.");
 	}
 
 	// Pointing to external memory

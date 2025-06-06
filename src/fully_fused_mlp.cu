@@ -28,6 +28,7 @@
  *          and simultaneous inference.
  */
 
+#include <stdexcept>
 #include <tiny-cuda-nn/networks/fully_fused_mlp.h>
 
 #include <tiny-cuda-nn/common_device.h>
@@ -682,6 +683,8 @@ void FullyFusedMLP<T, WIDTH>::inference_mixed_precision_impl(cudaStream_t stream
 	// Make sure our temporary buffers have the correct size for the given batch size
 	uint32_t batch_size = input.n();
 
+	throw std::runtime_error("test1");
+
 	GPUMatrix<T> inference_tmp = m_output_width > 16 ? GPUMatrix<T>{m_network_width, batch_size, stream} : GPUMatrix<T>{nullptr, m_network_width, batch_size};
 
 	// ASSUMPTION: weight matrices are contiguous in memory
@@ -709,6 +712,8 @@ std::unique_ptr<Context> FullyFusedMLP<T, WIDTH>::forward_impl(cudaStream_t stre
 	// Make sure our temporary buffers have the correct size for the given batch size
 	uint32_t batch_size = input.n();
 	auto forward = allocate_forward_buffers(stream, batch_size);
+
+	throw std::runtime_error("test2");
 
 	// ASSUMPTION: weight matrices & forward_tmp matrices are contiguous in memory
 	switch (m_activation) {

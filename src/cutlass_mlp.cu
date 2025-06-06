@@ -28,6 +28,7 @@
  *          and simultaneous inference.
  */
 
+#include <stdexcept>
 #include <tiny-cuda-nn/networks/cutlass_mlp.h>
 
 #include <tiny-cuda-nn/cutlass_matmul.h>
@@ -134,11 +135,19 @@ void CutlassMLP<T>::inference_mixed_precision_impl(cudaStream_t stream, const GP
 		return;
 	}
 
+	// throw std::runtime_error("test4"); // hit
+
 	uint32_t batch_size = input.n();
 	GPUMatrix<T> inference_tmp[2] = {
 		GPUMatrix<T>{m_network_width, batch_size, stream},
 		GPUMatrix<T>{m_network_width, batch_size, stream},
 	};
+
+	// if (!inference_tmp[0].data() || !inference_tmp[1].data()) {
+	//     throw std::runtime_error("One or more output buffers are unallocated (null).");
+	// }
+
+	CUDA_CHECK_THROW(cudaStreamSynchronize(stream));
 
 	// Run the actual network
 	{
@@ -146,16 +155,20 @@ void CutlassMLP<T>::inference_mixed_precision_impl(cudaStream_t stream, const GP
 
 		// Input layer
 		compute_inference_layer<FullLayer>(stream, m_activation, input_weight_matrix(use_inference_params), input, inference_tmp[tmp_idx++ % 2]);
+		CUDA_CHECK_THROW(cudaStreamSynchronize(stream));
 
 		// Hidden layers
 		for (uint32_t i = 0; i < m_n_hidden_matmuls; ++i) {
 			compute_inference_layer<FullLayer>(stream, m_activation, weight_matrix_at(use_inference_params, i), inference_tmp[(tmp_idx + 1) % 2], inference_tmp[tmp_idx % 2]);
+			CUDA_CHECK_THROW(cudaStreamSynchronize(stream));
 			++tmp_idx;
 		}
 
 		// Output
 		compute_inference_layer<LastLayer>(stream, m_output_activation, output_weight_matrix(use_inference_params), inference_tmp[(tmp_idx + 1) % 2], output);
 	}
+
+	CUDA_CHECK_THROW(cudaStreamSynchronize(stream));
 }
 
 template <typename T>

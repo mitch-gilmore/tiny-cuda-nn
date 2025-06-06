@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include <exception>
+#include <stdexcept>
 #include <tiny-cuda-nn/common.h>
 
 #include <tiny-cuda-nn/encoding.h>
@@ -58,6 +60,7 @@ public:
 	virtual ~NetworkWithInputEncoding() { }
 
 	void inference_mixed_precision_impl(cudaStream_t stream, const GPUMatrixDynamic<float>& input, GPUMatrixDynamic<T>& output, bool use_inference_params = true) override {
+		// throw std::runtime_error("test1");
 		GPUMatrixDynamic<T> network_input = {m_encoding->padded_output_width(), input.n(), stream, m_encoding->preferred_output_layout()};
 		m_encoding->inference_mixed_precision(stream, input, network_input, use_inference_params);
 		m_network->inference_mixed_precision(stream, network_input, output, use_inference_params);
